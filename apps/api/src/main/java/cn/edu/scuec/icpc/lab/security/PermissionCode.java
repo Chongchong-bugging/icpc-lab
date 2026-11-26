@@ -43,6 +43,8 @@ public enum PermissionCode {
     PROBLEM_IMPORT("problem:import"),
     CATEGORY_WRITE("category:write"),
 
+    IMPORT_WRITE("import:write"),
+
     PLAN_READ("plan:read"),
     PLAN_WRITE("plan:write"),
     PLAN_APPROVE("plan:approve"),

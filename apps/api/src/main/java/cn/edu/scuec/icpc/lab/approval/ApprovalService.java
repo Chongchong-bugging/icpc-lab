@@ -120,6 +120,9 @@ public class ApprovalService {
         if (MEMBERSHIP_APPLICATION.equals(bizType)) {
             return "application:review";
         }
+        if ("TRAINING_PLAN".equals(bizType)) {
+            return "plan:approve";
+        }
         return "approval:act";
     }
 

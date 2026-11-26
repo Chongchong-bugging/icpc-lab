@@ -1,6 +1,6 @@
-# B2 计划（题库目录 + 题目 + 训练计划）
+# B2 计划（算法目录 + 题目与标签 + 训练计划 + 导入框架）
 
-- **版本**：v1.0（2026-11-26）
+- **版本**：v1.1（2026-11-26，按用户确认纳入 WP-P0-13 导入框架，四项一起交付）
 - **依据**：`docs/plan/PLAN.md` §2（B2 批）、`docs/00-开发边界约束.md`、`docs/adr/ADR-0002-domain-model.md`、`docs/security/权限矩阵.md`
 - **前置门禁**：H2.1 已确认（B1 状态 `review`，服务端测试 34 绿）；B2 代码在分支 `feat/b2-algorithm-problem-plan` 开发，PR 合并回 master。
 - **范式**：Plan-Execute —— 本文件先行，每个 WP 落地前补实现要点，完成后回写 PLAN / TRACEABILITY / WORKLOG。
@@ -11,7 +11,16 @@
 |---|---|---|---|
 | WP-P0-11 | 算法目录：三级、属性、停用/合并、前置无环 | FR-06 / FR-37 / FR-38 / AT-13（目录部分） | 三级结构可维护；停用不删除；合并迁移引用；前置成环被拒 |
 | WP-P0-12 | 题目与标签：字段、查重、恰一主算法 | FR-07 / FR-40 | 题目 CRUD；重复题拦截；每題恰一主算法 + 若干副标签 |
+| WP-P0-13 | 导入框架：成员/考勤/成绩预检、错误行、回执 | NFR-05 | 预检逐行错误；应用导入单事务；回执留存 |
 | WP-P0-14 | 训练计划：学期/寒暑假、版本、审批发布、截止校验 | FR-09 / BR-05 | 计划可版本化；审批通过后发布；发布后不可改，只能新版本 |
+
+### 1.1 导入框架（WP-P0-13，NFR-05）
+
+- `import_batch`：`id`、`kind`（MEMBER/ATTENDANCE/RESULT）、`file_object_id`、`status`（PREVIEW/APPLIED/FAILED）、`total/valid/invalid`、`created_by`、时间戳。
+- `import_row_error`：`id`、`batch_id`、`row_no`、`column_name`、`code`、`message`、`raw_value`；只追加，不修改历史回执（DOM-15）。
+- 预检与应用分离：`preview` 只解析 + 校验并返回逐行错误（HTTP 200 + 报告）；`apply` 在单事务内写入，任一行失败整体回滚。
+- 输入为 CSV（UTF-8，MVP），单文件 ≤ 5MB（复用附件上限），行数 ≤ 5000，超出 400 `IMPORT_TOO_LARGE`。
+- 不引入第三方 CSV 库：手写 RFC 4180 解析（引号转义、CRLF/LF），避免新增依赖。
 
 **不做**（避免范围外）：OJ 判题、在线提交、题目自动抓取、外部题库同步（DENY/SCOPE 约束）；题目难度自动评分（未确认阈值，按 MANUAL）。
 
@@ -53,8 +62,9 @@
 
 - `CategoryTest`：三级创建、超深 400、停用后仍可读、合并迁移引用、前置成环 400。
 - `ProblemTest`：恰一主算法（0 或 2 个主算法 400 `PRIMARY_ALGORITHM_REQUIRED`/`MULTIPLE_PRIMARY_ALGORITHMS`）、重复题 409、标签绑定。
+- `ImportTest`：预检报告行号/列/错误码、错误行不落库、fix 后 apply 成功、超限 400 `IMPORT_TOO_LARGE`、回执可查。
 - `TrainingPlanTest`：草稿→提交→审批→发布；发布后修改 409 `PLAN_PUBLISHED_IMMUTABLE`；新版本可建；截止校验。
-- 门禁：AT-13（目录/一主算法部分）+ 计划审批发布；`mvn verify` 全绿；权限码三方一致。
+- 门禁：AT-13（目录/一主算法部分）+ 计划审批发布 + 导入回执；`mvn verify` 全绿；权限码三方一致。
 
 ## 5. 待确认（不阻塞开发，先按默认）
 
@@ -62,7 +72,23 @@
 2. 题目难度取值（当前自由文本/空，未确认能力评分口径前评估按 MANUAL）。
 3. 训练计划发布后是否允许撤回发布（当前按 DOM-15 不可撤回，只能新版本）。
 4. 标签是否为全局字典（当前全局 `tag` 表，不分部门）。
+5. 导入 CSV 的列定义（成员/考勤/成绩各自模板）——先按 §1.1 自带模板实现，列名固定，后续随业务确认扩展。
 
 ## 6. 交付节奏
 
-分支 `feat/b2-algorithm-problem-plan` 按 WP-11 → WP-12 → WP-14 顺序提交，每步 `mvn verify` + 文档回写；全部完成后开 PR 合并 master，报 H2.2 评审。
+分支 `feat/b2-algorithm-problem-plan` 按 WP-11 → WP-12 → WP-13 → WP-14 顺序提交，每步 `mvn verify` + 文档回写；全部完成后开 PR 合并 master，报 H2.2 评审。
+## 7. 实施结果（v1.2，2026-11-26）
+
+- 代码：`category/`（CategoryService/CategoryController + 3 实体）、`problem/`（ProblemService/ProblemController/TagController + 4 实体）、`importing/`（CsvParser/ImportService/ImportController/MemberImportHandler）、`trainingplan/`（TrainingPlanService/TrainingPlanController + 2 实体）；迁移 `db/migration/common/V4__b2_problem_plan.sql`。
+- 权限：新增 `import:write`（第 65 个），`ApprovalService.permissionFor` 增加 `TRAINING_PLAN → plan:approve`。
+- 测试：CategoryTest 8、ProblemTest 7、ImportTest 6、TrainingPlanTest 7（合计 28）；全仓 `mvn verify` 62 测试 0 失败；`node scripts/check-permissions.mjs` → 65 个一致。
+- 对照 §4 门禁：AT-13 服务端部分（三级目录/一主算法/导入错误行）已覆盖；计划审批发布与导入回执已覆盖；E2E `at-13.spec.ts` 仍待 P1。
+
+### 7.1 偏差与决策
+
+1. `training_plan.content`、`training_plan_version.snapshot` 用 `text` 而非 `jsonb`：H2 PostgreSQL 模式下 jsonb 绑定不稳定，改由服务层 Jackson 序列化并在读取时解析；PG 实库可后续迁移为 jsonb（不影响接口形状）。
+2. 不建 `import_batch.file_object_id`、不落原始导入文件：避免留存个人信息副本；`import_row_error` 保留错误明细，`GET /imports/{id}/errors.csv` 由明细重生成。
+3. `ATTENDANCE`/`RESULT` 导入仅登记枚举，暂无 handler，返回 400 `IMPORT_KIND_NOT_SUPPORTED`；本期只开放 `MEMBER`。
+4. `publish` 只改状态、不写版本快照（内容未变；重复写同版本号会违反 `uq_training_plan_version`）；发布后内容变更走 `POST /versions` 新建修订版本。
+5. 前置关系成环返回 409 `CATEGORY_RELATION_CYCLE`（状态冲突语义），自环返回 400 `CATEGORY_RELATION_SELF`；FR-39 学习路线仍为 P1 deferred，B2 只提供无环校验能力。
+6. 属性 code 统一转大写存储（`WEIGHT`），与权限码/错误码的大写风格一致。

@@ -117,3 +117,34 @@
 - TEAM 数据范围仍未实现（队伍模型随 B2）；`position_assignment` 的权限到期自动失效目前靠"结束任职"显式操作。
 
 
+
+## 2026-11-26（B2：算法目录 + 题目与标签 + 导入框架 + 训练计划）
+
+**完成**
+
+- WP-P0-11 算法目录：`V4__b2_problem_plan.sql` 扩展 `algorithm_category`（`name_key` 唯一、`short_name/description/stage/suggested_difficulty/owner_person_id/merged_into_id`），新增 `category_attribute`、`category_relation`；`category/CategoryService` 提供三级目录、属性 upsert、前置无环（DFS）、停用（有启用子节点拒绝）、同级合并（迁移题目、保留 `merged_into_id` 别名）。
+- WP-P0-12 题目与标签：`problem`（`(source_key,title_key)` 唯一）、`problem_algorithm`（`is_primary` + 可空唯一 `primary_key` + check，保证恰一主算法）、`tag`（TYPE/SKILL/YEAR/LEVEL）、`problem_tag`；`problem/ProblemService` 动态过滤（分类/标签/来源/关键词）、分页上限 100、逻辑停用。
+- WP-P0-13 导入框架：`import_batch`（PREVIEW/APPLIED/FAILED + `file_sha256`）、`import_row_error`（只追加）；手写 RFC4180 `CsvParser`；`importing/ImportService` 预检→确认两阶段、同文件幂等、错误行 CSV 回执；本期 handler 仅 `MEMBER`（姓名/学号/邮箱/电话/专业/年级）。
+- WP-P0-14 训练计划：`training_plan`（kind=学期/寒假/暑假、status 五态、`current_version`、内容 JSON 文本）、`training_plan_version`（版本快照只追加）；`trainingplan/TrainingPlanService` 复用 `ApprovalService`（bizType=`TRAINING_PLAN`，`permissionFor`→`plan:approve`），提交按 `plan.submit_deadline_weeks` 校验，发布后不可改只能 `POST /versions`。
+- 权限：新增第 65 个权限码 `import:write`（枚举/shared/权限矩阵/种子 MENTOR 列表四方同步）。
+
+**决策**
+
+- 目录读取复用 `problem:read`、标签字典写入复用 `category:write`，不新增 `category:read`/`tag:write`，避免权限矩阵膨胀与"读题库即读目录"的业务一致性割裂。
+- 每题恰一主算法用"可空唯一 `primary_key` + check"在 DB 层兜底（`primary_key = problem_id` 当主算法，否则 NULL），服务层先给 400 语义错误，避免依赖 H2/PG 的表达式索引差异。
+- 导入幂等键取 `(kind, file_sha256)` 且只认 PREVIEW/APPLIED 批次：同文件重复提交返回原批次（`duplicate=true`），错误行以 `import_row_error` 为准，不落原始文件（减少个人信息副本）。
+- 计划批准后允许编辑：APPROVED 编辑回 DRAFT 并递增版本，避免"批准即冻结"导致学期中计划无法修订；PUBLISHED 才按 DOM-15 永久冻结。
+- 属性 code 统一大写存储；前置成环用 409（状态冲突）而非 400，自环仍 400。
+
+**验证**
+
+- `mvn -f apps/api/pom.xml verify` → 62 测试、0 失败 0 错误（B2 新增 28：CategoryTest 8 / ProblemTest 7 / ImportTest 6 / TrainingPlanTest 7）。
+- `node scripts/check-permissions.mjs` → 65 个权限码三方一致；`AuthFlowTest.permissionCatalogSize` 同步为 65。
+- Flyway 在 H2 上应用 V1..V4；`RoutePermissionTest` 覆盖新增 4 个控制器（均有 `@PreAuthorize`）。
+
+**遗留 / 下一步**
+
+- 待 H2.2 批评审确认 B2 gate（AT-13 服务端部分、计划审批发布、导入回执）；E2E `at-13.spec.ts` 待 P1 前端。
+- `ATTENDANCE`/`RESULT` 导入 handler 未开放（返回 400 `IMPORT_KIND_NOT_SUPPORTED`），待考勤/成绩模块（WP-P0-16/19）落地后接入。
+- FR-39 学习路线、FR-08 题单、FR-41 题目导入仍 deferred；B2 只提供无环校验与目录/题目基础数据。
+- `TEAM` 数据范围、前端题库/计划页面仍未实现。

@@ -27,6 +27,7 @@ export const PERMISSION_LABELS: Record<PermissionCode, string> = {
   "problem:write": "维护题目",
   "problem:review": "审核题目",
   "problem:import": "导入题目",
+  "import:write": "导入数据",
   "category:write": "维护算法目录",
   "plan:read": "查看计划",
   "plan:write": "编制计划",

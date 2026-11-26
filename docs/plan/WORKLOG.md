@@ -33,3 +33,9 @@
 
 - 开 WP-P0-02：Flyway V1（人员/账号/角色/组织/申请/会员 + 种子），先落 ADR-0002 中的核心表与不变量。
 - 待用户确认：Q-01 部门名称、Q-04/Q-05 阈值、审批链默认级数。
+
+## 2026-11-26（G0 基线归档）
+
+- 远端仓库：<https://github.com/Chongchong-bugging/icpc-lab>（public，默认分支 `master`）。
+- 首个 commit `1c13601` 已推送；GitHub Actions 首跑通过（backend / frontend / governance 三个 job）。
+- 本地 `.cache/`、`.pnpm-store/`、`node_modules/`、构建产物均按 `.gitignore` 排除，不入库。

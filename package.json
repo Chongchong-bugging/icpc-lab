@@ -1,0 +1,11 @@
+{
+  "name": "icpc-lab",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.28.5",
+  "scripts": {
+    "dev:web": "pnpm --filter @icpc/web dev",
+    "build": "pnpm -r --if-present build",
+    "check:permissions": "node scripts/check-permissions.mjs"
+  }
+}

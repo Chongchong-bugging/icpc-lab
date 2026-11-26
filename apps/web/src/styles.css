@@ -1,0 +1,113 @@
+:root {
+  color-scheme: light dark;
+  font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  line-height: 1.6;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 20px 64px;
+  display: grid;
+  gap: 24px;
+}
+
+.header h1 {
+  margin: 4px 0 8px;
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  color: #38bdf8;
+}
+
+.subtitle {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.card {
+  background: #111c33;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.card h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.status div {
+  background: #0b1222;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.status dt {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.status dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+.ok {
+  color: #4ade80;
+}
+
+.error {
+  color: #fca5a5;
+}
+
+.muted {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.roles li {
+  background: #1e293b;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+code {
+  background: #1e293b;
+  padding: 1px 6px;
+  border-radius: 4px;
+}

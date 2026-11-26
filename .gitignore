@@ -1,0 +1,15 @@
+node_modules/
+dist/
+target/
+.cache/
+.pnpm-store/
+*.log
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+*.iml
+.DS_Store
+test-results/
+playwright-report/

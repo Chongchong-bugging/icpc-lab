@@ -8,6 +8,7 @@
 - `master`：`5e78c6a`（Merge B2 plan）——包含 B0 `58db461`、B1 `539a97b`、B2 计划 `a180a1c`。
 - 分支 `feat/b2-algorithm-problem-plan`：B2 的实现分支，**新功能都提交到这里**，完成后开 PR 合并 master。当前已有 B2 计划文档与本简报的后续修改。
 - 已通过门禁：H1（G0）、H2.0（B0）、H2.1（B1，服务端 34 测试绿，前端页未做）；B1 状态 `review` 等人工确认，不阻塞 B2 开发。
+- B2 已完成（2026-11-26）：WP-P0-11..14 代码与测试落盘，mvn verify 62 测试全绿、权限码 65 个一致，四项状态 eview，待 H2.2 批评审；实施偏差见 docs/plan/B2-plan.md §7.1。
 - 已知偏差：本地无 Docker → 集成测试用 H2 2.3.232 PostgreSQL 模式；审计快照 `varchar(4000)` JSON 文本（ADR-0003）；TEAM 数据范围未实现（B3 队伍模型后补）。
 
 ## 2. 本次要交付的四项

@@ -1,6 +1,6 @@
 # 中南民族大学 ICPC 实验室管理系统
 
-按《ICPC 实验室管理系统需求规格说明书》开发的实验室管理系统。当前处于 **G0 基线**：文档与脚手架已建立，尚未实现业务功能。
+按《ICPC 实验室管理系统需求规格说明书》开发的实验室管理系统。当前处于 **B0 基础设施**：G0 基线已归档、H1 已人工确认；Flyway 迁移、认证、RBAC 数据范围、审计与附件鉴权已实现并通过本地验证，待 H2.0 批评审；业务功能从 B1 开始。
 
 ## 先读这三份
 
@@ -54,6 +54,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mvn.ps1 verify
 node scripts/check-permissions.mjs
 node "...\pnpm.mjs" -r --if-present build
 ```
+
+> B0 后端基线：`mvn verify` 24 个测试全绿（认证/鉴权/审计/附件/种子幂等）；权限码一致 64 个。
+> 本地无 Docker 时集成测试使用 H2 2.3.232 PostgreSQL 模式；CI 与生产仍为 PostgreSQL 16。
 
 > 本机 DSH 沙箱会阻止 Node 派生子进程（`spawn EPERM`），`pnpm install` 与构建需在完整权限下执行一次；CI 或普通终端不受影响。`esbuild` 构建脚本已通过 `pnpm-workspace.yaml` 的 `allowBuilds` 放行。
 

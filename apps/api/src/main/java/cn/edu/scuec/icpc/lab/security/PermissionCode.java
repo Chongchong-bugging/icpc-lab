@@ -88,6 +88,9 @@ public enum PermissionCode {
 
     AUDIT_READ("audit:read"),
 
+    FILE_UPLOAD("file:upload"),
+    FILE_DOWNLOAD("file:download"),
+
     SYSTEM_CONFIG("system:config"),
     JOB_RUN("job:run");
 

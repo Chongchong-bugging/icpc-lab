@@ -1,6 +1,6 @@
 # 需求追溯矩阵（TRACEABILITY）
 
-- **版本**：1.0（G0 基线）
+- **版本**：1.1（B0 基础设施回写，2026-11-26）
 - **权威来源**：《需求规格说明书》FR-01..44、BR-01..21、NFR-01..08、AT-01..14
 - **维护规则**：每个 WP 合并前更新本表；`状态` 只能由验证人改为 `verified`；代码/测试列填仓库相对路径（GOV-04）。
 
@@ -104,8 +104,8 @@
 | AT-08 | 校内通过但无外部回执：显示"待外部确认" | FR-24/25 | WP-P0-22 | e2e/at-08.spec.ts | planned |
 | AT-09 | 名额分配不超额；排序依据与调整可追溯 | FR-27 | P1-排序 | e2e/at-09.spec.ts | deferred |
 | AT-10 | 低出勤提醒不除名；普通/集训队退出分别处理 | FR-05 | WP-P0-10 | e2e/at-10.spec.ts | planned |
-| AT-11 | 普通会员/队长/离任部长越权读取与下载被拒 | NFR-02/03 | WP-P0-26 | e2e/at-11.spec.ts | planned |
-| AT-12 | 考勤修订/成绩导入/导出/恢复备份；日志回执完整 | FR-12/30 | WP-P0-25 | e2e/at-12.spec.ts | planned |
+| AT-11 | 普通会员/队长/离任部长越权读取与下载被拒 | NFR-02/03 | WP-P0-26 | e2e/at-11.spec.ts（B0 服务端负向：AuthorizationTest / FileAccessTest） | in_progress |
+| AT-12 | 考勤修订/成绩导入/导出/恢复备份；日志回执完整 | FR-12/30 | WP-P0-25 | e2e/at-12.spec.ts（B0 审计部分：AuditAndRuleTest） | in_progress |
 | AT-13 | 三级目录+前置无环+导入重复/错误；每题一主算法 | FR-37..42 | WP-P0-11 | e2e/at-13.spec.ts | planned |
 | AT-14 | 多维检索与算法覆盖统计，可下钻到有效完成 | FR-43/44 | P1-统计 | e2e/at-14.spec.ts | deferred |
 
@@ -114,9 +114,9 @@
 | NFR | 要求 | 落地 | 状态 |
 |---|---|---|---|
 | NFR-01 | 桌面管理 + 手机报名/签到/任务/反馈 | Web 响应式 + P0-16 | planned |
-| NFR-02 | 服务端按角色与数据范围校验；停用即时失效 | WP-P0-03/04/26 | planned |
-| NFR-03 | 敏感信息按需展示、限制批量导出、密码不明文 | WP-P0-03/25 | planned |
-| NFR-04 | 审批/状态/权限/成绩/考勤/导出可审计 | WP-P0-05 | planned |
+| NFR-02 | 服务端按角色与数据范围校验；停用即时失效 | WP-P0-03/04/26；`JwtAuthenticationFilter`、`ScopeGuard`、`AuthService` | in_progress（B0 服务端已交付，E2E 待 WP-P0-26） |
+| NFR-03 | 敏感信息按需展示、限制批量导出、密码不明文 | WP-P0-03/25；Argon2id、refresh 仅 HttpOnly、`FileService` 可见性 | in_progress（密码/令牌已满足，导出限制待 P0-25） |
+| NFR-04 | 审批/状态/权限/成绩/考勤/导出可审计 | WP-P0-05；`AuditService` + PG V2 触发器 | in_progress（B0 规则/账号/附件已覆盖，业务域随 WP 接入） |
 | NFR-05 | 一致性校验、导入预检、错误行与回执 | WP-P0-13 | planned |
 | NFR-06 | 定期备份并验证恢复 | WP-P0-02/25 | planned |
 | NFR-07 | 规则/学期/日历/赛事/难度/审批人可配置 | WP-P0-02/24 | planned |
@@ -132,3 +132,21 @@
 | NFR | 8 | 8 | 0 | 0 | 0 |
 
 > P0 的 23 条 FR 与 GOV-001 §8 一致；P1/P2 在本表用 `deferred` 明确"未交付"，不得以 P0 验收宣称全量完成。
+## 6. B0 基础设施条款对照（2026-11-26）
+
+| 条款 / 需求 | 落地位置 | 验证 | 状态 |
+|---|---|---|---|
+| DOM-01 学号唯一 | `db/migration/common/V1__core.sql`（`uq_person_student_no`） | 迁移成功；`SeedIdempotencyTest` | implemented |
+| DOM-06 服务端鉴权 | `config/SecurityConfig.java`、各 Controller `@PreAuthorize`、`security/ScopeGuard.java` | `AuthorizationTest`、`RoutePermissionTest` | implemented |
+| DOM-11 业务记录不物理删除 | V1 全部 FK `on delete restrict`；`file_object.archived_at`、`role_assignment.revoked_at`；无删除 API | 代码评审 + `FileAccessTest` 归档用例 | implemented |
+| DOM-12 阈值配置化 | `rule_config` + `rule/RuleService.java` | `AuditAndRuleTest`、`SeedIdempotencyTest` | implemented |
+| DOM-27 审计字段 | `audit/AuditLog.java`、`AuditService`（actor/时间/IP/对象/前后快照/原因/requestId） | `AuditAndRuleTest` | implemented |
+| TECH-08 RBAC + 数据范围 | `role`、`role_permission`、`role_assignment`（SELF/TEAM/DEPARTMENT/GLOBAL） | `SeedIdempotencyTest`（11 角色）、`AuthorizationTest` | implemented（TEAM 判定待 B1 队伍模型） |
+| TECH-09 权限码 `模块:动作` | `security/PermissionCode.java`、`packages/shared/src/permissions.ts` | `node scripts/check-permissions.mjs` → 64 个一致 | implemented |
+| TECH-10 路由-权限元测试 | `src/test/.../security/RoutePermissionTest.java` | 24 测试全绿 | implemented |
+| TECH-11 数据范围注入查询 | `security/ScopeGuard.java`、`audit/AuditService.java`（非 GLOBAL 只查本人） | `AuthorizationTest` | implemented（B0 域有限） |
+| TECH-12 会话与即时失效 | `security/JwtService.java`、`auth/AuthService.java`、`auth/LoginAttemptService.java` | `AuthFlowTest` 7 例 | implemented |
+| TECH-13 附件与签名下载 | `file/FileService.java`、`file/FileTokenService.java`、`file/FileController.java` | `FileAccessTest` 3 例 | implemented |
+| DATA-05 / I-21 审计只增不改 | PG `V2__audit_append_only.sql` 触发器；无写改删端点 | `AuditAndRuleTest`（无 DELETE 路由）；触发器待 PG 实库验证 | implemented |
+| I-23 / DENY-04 未确认阈值只提示 | 5 个 `MANUAL` 空值规则键；`RuleService` 拒绝 MANUAL 带值 | `AuditAndRuleTest`、`SeedIdempotencyTest` | implemented |
+| DENY-11 / DENY-12 密钥与日志 | 密钥仅环境变量（prod 强制）、错误响应不含堆栈/凭据 | `GlobalExceptionHandler`；`application-prod.yml` | implemented |

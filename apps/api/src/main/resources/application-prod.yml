@@ -12,3 +12,13 @@ spring:
 
 app:
   version: ${APP_VERSION:0.1.0}
+  security:
+    # 生产不提供默认密钥：未设置即启动失败（fail fast）。
+    jwt-secret: ${APP_JWT_SECRET}
+    cookie-secure: true
+  bootstrap:
+    admin-username: ${BOOTSTRAP_ADMIN_USERNAME:admin}
+    # 生产必须显式提供；SeedRunner 在缺少时拒绝启动（种子规范 §1）。
+    admin-password: ${BOOTSTRAP_ADMIN_PASSWORD}
+  seed:
+    demo: false

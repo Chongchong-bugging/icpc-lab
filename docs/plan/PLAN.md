@@ -1,7 +1,7 @@
 # 开发计划（PLAN）
 
-- **版本**：1.1（G0，增加六功能一批节奏）
-- **当前阶段**：G0 交付完成，H1 待人工确认（确认后进入 P0 的 WP-P0-02）
+- **版本**：1.2（B0 实施回写）
+- **当前阶段**：G0 交付完成，H1 于 2026-11-26 人工确认通过；B0（WP-P0-02..05）已实现并通过本地验证，待 H2.0 批评审
 - **总目标**：按 P0 → P1 → P2 交付 44 条 FR，P0 必须 100% 可演示、可追溯
 
 ## 1. 阶段与门禁
@@ -21,10 +21,10 @@
 | WP | 内容 | 依赖 | 验收 | 状态 |
 |---|---|---|---|---|
 | WP-P0-01 | 工程基线：Spring Boot 3.5 + React 19 + pnpm workspace + CI 骨架 | — | `mvn verify` / `pnpm build` 通过 | done |
-| WP-P0-02 | Flyway V1：人员/账号/角色/组织/申请/会员 + 种子 | 01 | 迁移可重跑；Testcontainers 通过 | proposed |
-| WP-P0-03 | 认证：登录/刷新/登出、Argon2id、失败锁定、token_version | 02 | 登录/停用即时失效用例 | proposed |
-| WP-P0-04 | 鉴权：权限点枚举、角色绑定、数据范围、越权测试 | 03 | AT-11 正反用例 | proposed |
-| WP-P0-05 | 审计与文件：append-only、请求号、上传下载鉴权 | 02 | 审计不可改；下载需授权 | proposed |
+| WP-P0-02 | Flyway V1：人员/账号/角色/组织/申请/会员 + 种子 | 01 | 迁移可重跑；种子幂等（本地以 H2 PG 模式替代 Testcontainers，见 §3.1） | review |
+| WP-P0-03 | 认证：登录/刷新/登出、Argon2id、失败锁定、token_version | 02 | 登录/停用即时失效用例（AuthFlowTest 7 例） | review |
+| WP-P0-04 | 鉴权：权限点枚举、角色绑定、数据范围、越权测试 | 03 | AT-11 正反用例（AuthorizationTest + RoutePermissionTest） | review |
+| WP-P0-05 | 审计与文件：append-only、请求号、上传下载鉴权 | 02 | 审计不可改；下载需授权（AuditAndRuleTest + FileAccessTest） | review |
 | WP-P0-06 | 组织：部门/岗位/届次/任期；到期失权 | 04 | FR-01 / AT-02 | proposed |
 | WP-P0-07 | 会员档案：一人一档、分类查询、身份变更留史 | 06 | FR-03 | proposed |
 | WP-P0-08 | 入会申请：双路径、7 态、版本、审核轨迹 | 04 | FR-02 / AT-01 | proposed |
@@ -81,7 +81,7 @@
 | Spring Boot 脚手架可启动 | `apps/api` | done |
 | React 脚手架可构建 | `apps/web` | done |
 | CI 九门禁 | `.github/workflows/ci.yml` | done（骨架 3 项：后端/前端/治理；九门禁随 P0 补全） |
-| H1 评审 | 记录于 WORKLOG | review（本地自检通过，待人工确认） |
+| H1 评审 | 记录于 WORKLOG | done（2026-11-26 人工确认通过） |
 
 ## 4. 里程碑
 

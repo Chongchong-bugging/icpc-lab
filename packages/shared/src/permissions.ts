@@ -63,6 +63,8 @@ export const PERMISSION_CODES = [
   "rule:read",
   "rule:write",
   "audit:read",
+  "file:upload",
+  "file:download",
   "system:config",
   "job:run",
 ] as const;

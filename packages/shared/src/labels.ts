@@ -62,6 +62,8 @@ export const PERMISSION_LABELS: Record<PermissionCode, string> = {
   "rule:read": "查看规则",
   "rule:write": "维护规则",
   "audit:read": "查看审计",
+  "file:upload": "上传附件",
+  "file:download": "下载附件",
   "system:config": "系统配置",
   "job:run": "执行任务",
 };

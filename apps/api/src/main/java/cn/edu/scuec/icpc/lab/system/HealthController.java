@@ -1,11 +1,13 @@
 package cn.edu.scuec.icpc.lab.system;
 
+import cn.edu.scuec.icpc.lab.security.PublicEndpoint;
 import java.time.Instant;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@PublicEndpoint
 @RestController
 @RequestMapping("/api/v1")
 public class HealthController {

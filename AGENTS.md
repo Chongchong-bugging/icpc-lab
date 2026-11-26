@@ -19,6 +19,12 @@
 
 ## 当前状态
 
-- 已完成 G0：总纲 v1.1.0、ADR-0001（Java 技术栈）、ADR-0002（领域模型）、权限矩阵 v1、种子数据规范 v1、TRACEABILITY v1、PLAN v1、WORKLOG、Spring Boot + React 脚手架、CI 骨架。
-- 已验证：`mvn verify`（2 个测试通过）、`/api/v1/health` 200、未认证 401、`pnpm build` 成功、权限码三方一致 62 个。
-- 门禁：H1 待人工确认；确认后开 WP-P0-02（Flyway V1）。
+- 已完成 G0：总纲 v1.1.0、ADR-0001（Java 技术栈）、ADR-0002（领域模型）、权限矩阵 v1、种子数据规范 v1、TRACEABILITY v1、PLAN v1、WORKLOG、Spring Boot + React 脚手架、CI 骨架。G0 已推送 GitHub（master `e90a4b1`）。
+- 已完成 B0（WP-P0-02..05，状态 `review`，待 H2.0 人工评审）：
+  - Flyway `V1__core.sql`（18 表 + 约束/索引）+ PostgreSQL `V2` 审计触发器；`SeedRunner` 幂等种子（11 角色、64 权限映射、21 规则键）。
+  - 认证：Argon2id、JWT 访问令牌 15 分钟、refresh 仅 HttpOnly Cookie 且单次轮换、失败锁定、`token_version` 停用即时失效。
+  - 鉴权：64 权限码三方一致；`@PreAuthorize` + `ScopeGuard` 数据范围；路由-权限元测试（TECH-10）。
+  - 审计：`audit_log` 只追加（PG 触发器 + 无写改删端点）；附件上传/签名下载鉴权（TECH-13）。
+- 已验证：`mvn verify` → 24 测试全绿；`node scripts/check-permissions.mjs` → 64 个一致；Flyway 在 H2 上应用 V1+V2；种子 `inserted=415`。
+- 门禁：H2.0 批评审确认后开 B1（FR-01/02/03/04/05/29）。
+- 已知偏差：本地无 Docker，集成测试用 H2 PostgreSQL 模式（Testcontainers 待 CI 补）；审计快照存 `varchar(4000)` JSON 文本（ADR-0003）。

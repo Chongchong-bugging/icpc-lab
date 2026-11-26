@@ -45,7 +45,7 @@ class AuthFlowTest extends ApiTestSupport {
         String token = adminToken();
         mvc.perform(get("/api/v1/auth/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.permissionCatalogSize").value(64))
+                .andExpect(jsonPath("$.permissionCatalogSize").value(65))
                 .andExpect(jsonPath("$.username").value(ADMIN_USERNAME));
     }
 

@@ -29,6 +29,7 @@ export const PERMISSION_CODES = [
   "problem:review",
   "problem:import",
   "category:write",
+  "import:write",
   "plan:read",
   "plan:write",
   "plan:approve",

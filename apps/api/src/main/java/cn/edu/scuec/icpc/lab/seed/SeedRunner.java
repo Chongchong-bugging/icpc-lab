@@ -148,7 +148,7 @@ public class SeedRunner implements ApplicationRunner {
         List<String> captain = concat(member, "profile:read:scoped", "report:read", "report:read:scoped", "team:manage");
         List<String> mentor = List.of("profile:read:self", "profile:read:scoped", "application:create",
                 "application:read:self", "application:read:scoped", "application:withdraw", "member:read",
-                "member:assess", "problem:read", "problem:write", "problem:import", "plan:read", "plan:write",
+                "member:assess", "problem:read", "problem:write", "problem:import", "import:write", "plan:read", "plan:write",
                 "task:read", "task:write", "task:assign", "task:verify", "attendance:read", "attendance:write",
                 "attendance:amend", "team:read", "team:approve", "team:manage", "contest:read",
                 "registration:create", "registration:review", "result:write", "approval:read", "approval:act",

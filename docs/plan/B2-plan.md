@@ -77,3 +77,18 @@
 ## 6. 交付节奏
 
 分支 `feat/b2-algorithm-problem-plan` 按 WP-11 → WP-12 → WP-13 → WP-14 顺序提交，每步 `mvn verify` + 文档回写；全部完成后开 PR 合并 master，报 H2.2 评审。
+## 7. 实施结果（v1.2，2026-11-26）
+
+- 代码：`category/`（CategoryService/CategoryController + 3 实体）、`problem/`（ProblemService/ProblemController/TagController + 4 实体）、`importing/`（CsvParser/ImportService/ImportController/MemberImportHandler）、`trainingplan/`（TrainingPlanService/TrainingPlanController + 2 实体）；迁移 `db/migration/common/V4__b2_problem_plan.sql`。
+- 权限：新增 `import:write`（第 65 个），`ApprovalService.permissionFor` 增加 `TRAINING_PLAN → plan:approve`。
+- 测试：CategoryTest 8、ProblemTest 7、ImportTest 6、TrainingPlanTest 7（合计 28）；全仓 `mvn verify` 62 测试 0 失败；`node scripts/check-permissions.mjs` → 65 个一致。
+- 对照 §4 门禁：AT-13 服务端部分（三级目录/一主算法/导入错误行）已覆盖；计划审批发布与导入回执已覆盖；E2E `at-13.spec.ts` 仍待 P1。
+
+### 7.1 偏差与决策
+
+1. `training_plan.content`、`training_plan_version.snapshot` 用 `text` 而非 `jsonb`：H2 PostgreSQL 模式下 jsonb 绑定不稳定，改由服务层 Jackson 序列化并在读取时解析；PG 实库可后续迁移为 jsonb（不影响接口形状）。
+2. 不建 `import_batch.file_object_id`、不落原始导入文件：避免留存个人信息副本；`import_row_error` 保留错误明细，`GET /imports/{id}/errors.csv` 由明细重生成。
+3. `ATTENDANCE`/`RESULT` 导入仅登记枚举，暂无 handler，返回 400 `IMPORT_KIND_NOT_SUPPORTED`；本期只开放 `MEMBER`。
+4. `publish` 只改状态、不写版本快照（内容未变；重复写同版本号会违反 `uq_training_plan_version`）；发布后内容变更走 `POST /versions` 新建修订版本。
+5. 前置关系成环返回 409 `CATEGORY_RELATION_CYCLE`（状态冲突语义），自环返回 400 `CATEGORY_RELATION_SELF`；FR-39 学习路线仍为 P1 deferred，B2 只提供无环校验能力。
+6. 属性 code 统一转大写存储（`WEIGHT`），与权限码/错误码的大写风格一致。

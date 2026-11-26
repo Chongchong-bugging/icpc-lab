@@ -190,7 +190,7 @@
 | DATA-11 导入幂等（同文件重复提交返回原结果） | `import_batch.file_sha256` + `kind` 查已有批次，`duplicate=true` 直接返回 | `ImportTest.applyIsIdempotentForSameFile_DATA11` | implemented |
 | ENG-02 统一错误体 / ENG-03 分页体 | `GlobalExceptionHandler`（code/message/requestId）、`PageResponse`（items/page/size/total） | 各测试断言 `$.code` 与 `$.size` | implemented |
 | TECH-11 每 API 至少 1 个 403 | 四个新模块均有负向用例 | `CategoryTest.categoryWriteRequiresCategoryWrite_TECH11`、`ProblemTest.problemWriteRequiresProblemWrite_TECH11`、`ImportTest.importRequiresImportWrite_TECH11`、`TrainingPlanTest.planWriteRequiresPlanWrite_TECH11` | implemented |
-| 权限码三方一致 | `security/PermissionCode.java` 新增 `import:write`、`packages/shared/src/permissions.ts`、`docs/security/权限矩阵.md` | `node scripts/check-permissions.mjs` → 65 个一致；`AuthFlowTest` 目录数 65 | implemented |
+| 权限码四方一致 | `security/PermissionCode.java` 新增 `import:write`、`packages/shared/src/permissions.ts`、`packages/shared/src/labels.ts`（中文标签，`Record<PermissionCode,string>` 缺项会令前端 `tsc --noEmit` 失败）、`docs/security/权限矩阵.md` | `node scripts/check-permissions.mjs` → 65 个一致；`AuthFlowTest` 目录数 65 | implemented |
 | BR-21 / AT-13 服务端部分 | 见上（DOM-19/20/21/24） | `CategoryTest` + `ProblemTest` + `ImportTest` 共 21 例 | implemented（E2E `e2e/at-13.spec.ts` 待 P1） |
 
 已知偏差（须在 H2.2 评审确认）：

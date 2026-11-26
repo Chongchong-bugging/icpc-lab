@@ -140,6 +140,7 @@
 
 - `mvn -f apps/api/pom.xml verify` → 62 测试、0 失败 0 错误（B2 新增 28：CategoryTest 8 / ProblemTest 7 / ImportTest 6 / TrainingPlanTest 7）。
 - `node scripts/check-permissions.mjs` → 65 个权限码三方一致；`AuthFlowTest.permissionCatalogSize` 同步为 65。
+- 前端构建回归：新增权限码还须同步 packages/shared/src/labels.ts 的 PERMISSION_LABELS（Record<PermissionCode,string>），否则 	sc --noEmit 报 TS2741（首轮 CI 即因此失败，已修复为 d0e5f34）。
 - Flyway 在 H2 上应用 V1..V4；`RoutePermissionTest` 覆盖新增 4 个控制器（均有 `@PreAuthorize`）。
 
 **遗留 / 下一步**

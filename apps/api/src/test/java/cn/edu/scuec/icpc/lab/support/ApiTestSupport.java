@@ -77,6 +77,42 @@ public abstract class ApiTestSupport {
         return prefix + "." + UUID.randomUUID().toString().substring(0, 8);
     }
 
+    /**
+     * 走完整入会链路（申请 → 审批通过 → 管理员确认生效）创建一名在册会员，
+     * 供 B1 后续用例（退出、学期注册、档案）复用。审批人使用 PRESIDENT（application:review 仅该角色组持有）。
+     */
+    protected MemberSession becomeMember(String prefix, String roleCode) throws Exception {
+        String username = newUsername(prefix);
+        JsonNode account = createAccount(username, "会员 " + prefix, roleCode, "SELF");
+        String token = loginToken(username, TEST_PASSWORD);
+        String reviewerUser = newUsername("reviewer");
+        createAccount(reviewerUser, "审批人 " + prefix, "PRESIDENT", "GLOBAL");
+        String reviewerToken = loginToken(reviewerUser, TEST_PASSWORD);
+
+        JsonNode created = objectMapper.readTree(mvc.perform(post("/api/v1/applications")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"JOIN\",\"channel\":\"GENERAL\",\"form\":\"{}\"}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
+        String applicationId = created.get("id").asText();
+        mvc.perform(post("/api/v1/applications/" + applicationId + "/submit")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        mvc.perform(post("/api/v1/applications/" + applicationId + "/review")
+                        .header("Authorization", "Bearer " + reviewerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"decision\":\"APPROVE\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(post("/api/v1/applications/" + applicationId + "/effect")
+                        .header("Authorization", "Bearer " + adminToken()))
+                .andExpect(status().isOk());
+        return new MemberSession(username, token, UUID.fromString(account.get("personId").asText()), applicationId);
+    }
+
+    protected record MemberSession(String username, String token, UUID personId, String applicationId) {
+    }
+
     protected static String refreshCookieValue(MvcResult result) {
         String header = result.getResponse().getHeader("Set-Cookie");
         if (header == null) {

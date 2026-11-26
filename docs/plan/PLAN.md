@@ -1,7 +1,7 @@
 # 开发计划（PLAN）
 
-- **版本**：1.2（B0 实施回写）
-- **当前阶段**：G0 交付完成，H1 于 2026-11-26 人工确认通过；B0（WP-P0-02..05）已实现并通过本地验证，待 H2.0 批评审
+- **版本**：1.4（B1 代码与测试完成，待 H2.1 批评审）
+- **当前阶段**：G0 与 B0 均完成（H1、H2.0 于 2026-11-26 人工确认通过）；B1（FR-01..05 + FR-29）代码与测试完成，`mvn verify` 34 测试全绿，待 H2.1 人工评审
 - **总目标**：按 P0 → P1 → P2 交付 44 条 FR，P0 必须 100% 可演示、可追溯
 
 ## 1. 阶段与门禁
@@ -21,15 +21,15 @@
 | WP | 内容 | 依赖 | 验收 | 状态 |
 |---|---|---|---|---|
 | WP-P0-01 | 工程基线：Spring Boot 3.5 + React 19 + pnpm workspace + CI 骨架 | — | `mvn verify` / `pnpm build` 通过 | done |
-| WP-P0-02 | Flyway V1：人员/账号/角色/组织/申请/会员 + 种子 | 01 | 迁移可重跑；种子幂等（本地以 H2 PG 模式替代 Testcontainers，见 §3.1） | review |
-| WP-P0-03 | 认证：登录/刷新/登出、Argon2id、失败锁定、token_version | 02 | 登录/停用即时失效用例（AuthFlowTest 7 例） | review |
-| WP-P0-04 | 鉴权：权限点枚举、角色绑定、数据范围、越权测试 | 03 | AT-11 正反用例（AuthorizationTest + RoutePermissionTest） | review |
-| WP-P0-05 | 审计与文件：append-only、请求号、上传下载鉴权 | 02 | 审计不可改；下载需授权（AuditAndRuleTest + FileAccessTest） | review |
-| WP-P0-06 | 组织：部门/岗位/届次/任期；到期失权 | 04 | FR-01 / AT-02 | proposed |
-| WP-P0-07 | 会员档案：一人一档、分类查询、身份变更留史 | 06 | FR-03 | proposed |
-| WP-P0-08 | 入会申请：双路径、7 态、版本、审核轨迹 | 04 | FR-02 / AT-01 | proposed |
-| WP-P0-09 | 学期注册与考核：三态、观察名单、未配置不除名 | 07 | FR-04 / AT-10 | proposed |
-| WP-P0-10 | 退出：普通/集训队、15 工作日、告知审议 | 09 | FR-05 / BR-04 | proposed |
+| WP-P0-02 | Flyway V1：人员/账号/角色/组织/申请/会员 + 种子 | 01 | 迁移可重跑；种子幂等（本地以 H2 PG 模式替代 Testcontainers，见 §3.1） | verified |
+| WP-P0-03 | 认证：登录/刷新/登出、Argon2id、失败锁定、token_version | 02 | 登录/停用即时失效用例（AuthFlowTest 7 例） | verified |
+| WP-P0-04 | 鉴权：权限点枚举、角色绑定、数据范围、越权测试 | 03 | AT-11 正反用例（AuthorizationTest + RoutePermissionTest） | verified |
+| WP-P0-05 | 审计与文件：append-only、请求号、上传下载鉴权 | 02 | 审计不可改；下载需授权（AuditAndRuleTest + FileAccessTest） | verified |
+| WP-P0-06 | 组织：部门/岗位/届次/任期；到期失权 | 04 | FR-01 / AT-02（OrgAssignmentTest） | review |
+| WP-P0-07 | 会员档案：一人一档、分类查询、身份变更留史 | 06 | FR-03（MemberService + ApplicationFlowTest） | review |
+| WP-P0-08 | 入会申请：双路径、7 态、版本、审核轨迹 | 04 | FR-02 / AT-01（ApplicationFlowTest） | review |
+| WP-P0-09 | 学期注册与考核：三态、观察名单、未配置不除名 | 07 | FR-04 / AT-10（RegistrationTest） | review |
+| WP-P0-10 | 退出：普通/集训队、15 工作日、告知审议 | 09 | FR-05 / BR-04（ExitFlowTest） | review |
 | WP-P0-11 | 算法目录：三级、属性、停用/合并、前置无环 | 07 | FR-06/37/38 / AT-13 | proposed |
 | WP-P0-12 | 题目与标签：字段、查重、恰一主算法 | 11 | FR-07/40 | proposed |
 | WP-P0-13 | 导入框架：成员/考勤/成绩预检、错误行、回执 | 07 | NFR-05 | proposed |
@@ -43,7 +43,7 @@
 | WP-P0-21 | 校赛：计划/报名/名单/成绩/排名/奖项/总结 | 12 | FR-23 | proposed |
 | WP-P0-22 | 非 XCPC：赛事类型配置、个人/团队报名、截止 | 19 | FR-24 / AT-08 | proposed |
 | WP-P0-23 | XCPC：赛季/预选/报名/成绩/证据；成员快照 | 19 | FR-26 | proposed |
-| WP-P0-24 | 审批与通知：通用 N 级、待办、提醒、退回重提 | 04 | FR-29 | proposed |
+| WP-P0-24 | 审批与通知：通用 N 级、待办、提醒、退回重提 | 04 | FR-29（ApprovalService + NotificationService） | review |
 | WP-P0-25 | 报表与导出：范围过滤、导出授权、审计 | 07 | FR-30 / AT-12 | proposed |
 | WP-P0-26 | 权限回归与 AT 全量 E2E | 全部 | AT-01..08/10..13 | proposed |
 
@@ -108,3 +108,7 @@
 | 日期 | 版本 | 变更 |
 |---|---|---|
 | 2026-11-26 | 1.0 | G0 建立；26 个 P0 WP；技术栈改 Java |
+| 2026-11-26 | 1.2 | B0 交付（迁移/认证/鉴权/审计/附件），WP-P0-02..05 → verified |
+| 2026-11-26 | 1.3 | H2.0 确认；启动 B1，WP-P0-06..10/24 → ready |
+| 2026-11-26 | 1.4 | B1 代码与测试完成（34 测试），WP-P0-06..10/24 → review，待 H2.1 |
+

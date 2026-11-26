@@ -1,6 +1,6 @@
 # 需求追溯矩阵（TRACEABILITY）
 
-- **版本**：1.1（B0 基础设施回写，2026-11-26）
+- **版本**：1.2（B1 组织/申请/会员/注册/退出/审批通知回写，2026-11-26）
 - **权威来源**：《需求规格说明书》FR-01..44、BR-01..21、NFR-01..08、AT-01..14
 - **维护规则**：每个 WP 合并前更新本表；`状态` 只能由验证人改为 `verified`；代码/测试列填仓库相对路径（GOV-04）。
 
@@ -19,11 +19,11 @@
 
 | 需求 | 优先级 | 验收要点（摘要） | WP | 代码 | 测试 | 状态 |
 |---|---|---|---|---|---|---|
-| FR-01 | P0 | 部门/岗位/任期/授权；任期结束权限失效，历史可查 | WP-P0-06 | — | — | planned |
-| FR-02 | P0 | 入会双路径；每次审核留人/时间/意见 | WP-P0-08 | — | — | planned |
-| FR-03 | P0 | 会员档案与分类查询；学号不重复；身份变更留史 | WP-P0-07 | — | — | planned |
-| FR-04 | P0 | 学期注册、考核、观察名单、恢复；未配置不自动除名 | WP-P0-09 | — | — | planned |
-| FR-05 | P0 | 退出/告知/审议/奖惩；普通与集训队流程不同 | WP-P0-10 | — | — | planned |
+| FR-01 | P0 | 部门/岗位/任期/授权；任期结束权限失效，历史可查 | WP-P0-06 | `org/OrgService.java`、`org/PositionAssignment.java` | `org/OrgAssignmentTest` | implemented |
+| FR-02 | P0 | 入会双路径；每次审核留人/时间/意见 | WP-P0-08 | `application/ApplicationService.java`、`application/ApplicationReview.java` | `application/ApplicationFlowTest` | implemented |
+| FR-03 | P0 | 会员档案与分类查询；学号不重复；身份变更留史 | WP-P0-07 | `member/MemberService.java`、`member/IdentityHistory.java` | `application/ApplicationFlowTest`、`member/RegistrationTest` | implemented |
+| FR-04 | P0 | 学期注册、考核、观察名单、恢复；未配置不自动除名 | WP-P0-09 | `member/RegistrationService.java`、`member/SemesterRegistration.java` | `member/RegistrationTest` | implemented |
+| FR-05 | P0 | 退出/告知/审议/奖惩；普通与集训队流程不同 | WP-P0-10 | `application/ApplicationService.java`（effect/validateExitNotice）、`member/DisciplineRecord.java` | `application/ExitFlowTest` | implemented |
 | FR-06 | P0 | 知识点分层、难度、关联题目；停用可追溯 | WP-P0-11 | — | — | planned |
 | FR-07 | P0 | 题目字段完整；同来源题号重复提示；多知识点 | WP-P0-12 | — | — | planned |
 | FR-08 | P1 | 题单/题解/资料归档并按对象分配，保留发布版本 | P1-题库 | — | — | deferred |
@@ -47,7 +47,7 @@
 | FR-26 | P0 | 赛季/预选/报名/成绩/证据；同赛季多场；成员快照 | WP-P0-23 | — | — | planned |
 | FR-27 | P1 | 内部排序/名额/选择；公式未定只能人工 | P1-排序 | — | — | deferred |
 | FR-28 | P1 | 正赛备战/每周模拟/赛站资料/成绩奖项总结 | P1-备战 | — | — | deferred |
-| FR-29 | P0 | 审批待办/通知/提醒/结果/归档；退回可重提 | WP-P0-24 | — | — | planned |
+| FR-29 | P0 | 审批待办/通知/提醒/结果/归档；退回可重提 | WP-P0-24 | `approval/ApprovalService.java`、`notification/NotificationService.java` | `application/ApplicationFlowTest`（待办/退回重提/通知） | implemented |
 | FR-30 | P0 | 按学期/年级/状态/部门/队伍统计与导出；同权限+审计 | WP-P0-25 | — | — | planned |
 | FR-31 | P2 | 财务账簿/凭证/报销/双审批/公示 | P2-财务 | — | — | deferred |
 | FR-32 | P2 | 资产台账/保管/维护/盘点/交接 | P2-资产 | — | — | deferred |
@@ -68,10 +68,10 @@
 
 | 规则 | 系统处理 | 落地 WP | 测试断言 | 状态 |
 |---|---|---|---|---|
-| BR-01 | 按学期生成注册与考核记录，支持观察名单 | WP-P0-09 | 注册唯一 + 观察状态流转 | planned |
-| BR-02 | 连续不合格次数未确认：只生成待审名单，保留决定 | WP-P0-09 | 未配置时不自动除名 | planned |
+| BR-01 | 按学期生成注册与考核记录，支持观察名单 | WP-P0-09 | 注册唯一 + 观察状态流转 | implemented |
+| BR-02 | 连续不合格次数未确认：只生成待审名单，保留决定 | WP-P0-09 | 未配置时不自动除名 | implemented（`RegistrationService` 只记录结论，不改生命周期） |
 | BR-03 | 三次缺勤/出勤率 50% 未确认：只提醒 + 人工审议 | WP-P0-16 | 低出勤提醒不改变资格 | planned |
-| BR-04 | 集训队退出提前 15 个工作日校验，审批链可配置 | WP-P0-10 | 不足 15 日阻断提交并说明 | planned |
+| BR-04 | 集训队退出提前 15 个工作日校验，审批链可配置 | WP-P0-10 | 不足 15 日阻断提交并说明 | implemented（`validateExitNotice`；普通会员不阻断） |
 | BR-05 | 开学 2 周内完成计划，按业务日历计算 | WP-P0-14 | 截止日计算含节假日/调休 | planned |
 | BR-06 | 培训 ≥8 次、每次 ≥90 分钟；寒假 4 周；第二学期 12 周 | WP-P0-17/18 | 次数与时长分别统计 | planned |
 | BR-07 | 培训结束 3 个工作日内反馈/总结提醒 | WP-P0-17 | 到期提醒 + 逾期状态 | planned |
@@ -94,8 +94,8 @@
 
 | AT | 场景 | 主要 FR | WP | E2E | 状态 |
 |---|---|---|---|---|---|
-| AT-01 | 竞赛类/综合管理类入会申请分别处理，学号不重复 | FR-02..04 | WP-P0-08 | e2e/at-01.spec.ts | planned |
-| AT-02 | 会员+任职+队长，任期结束后权限调整、历史保留 | FR-01/03/19 | WP-P0-06 | e2e/at-02.spec.ts | planned |
+| AT-01 | 竞赛类/综合管理类入会申请分别处理，学号不重复 | FR-02..04 | WP-P0-08 | e2e/at-01.spec.ts（服务端：`ApplicationFlowTest`） | in_progress |
+| AT-02 | 会员+任职+队长，任期结束后权限调整、历史保留 | FR-01/03/19 | WP-P0-06 | e2e/at-02.spec.ts（服务端：`OrgAssignmentTest`） | in_progress |
 | AT-03 | 多算法周任务 + 重复/待核实成绩；按三级下钻 | FR-06..12/37..44 | WP-P0-15 | e2e/at-03.spec.ts | planned |
 | AT-04 | 新生培训+寒假任务；次数/时长/周数/反馈分别检查 | FR-15/18 | WP-P0-17 | e2e/at-04.spec.ts | planned |
 | AT-05 | 第 4 名同期徒弟被阻断 | FR-16 | WP-P0-17 | e2e/at-05.spec.ts | planned |
@@ -103,7 +103,7 @@
 | AT-07 | 暑训报名与训练安排；年级/日历分别校验 | FR-21 | WP-P0-20 | e2e/at-07.spec.ts | planned |
 | AT-08 | 校内通过但无外部回执：显示"待外部确认" | FR-24/25 | WP-P0-22 | e2e/at-08.spec.ts | planned |
 | AT-09 | 名额分配不超额；排序依据与调整可追溯 | FR-27 | P1-排序 | e2e/at-09.spec.ts | deferred |
-| AT-10 | 低出勤提醒不除名；普通/集训队退出分别处理 | FR-05 | WP-P0-10 | e2e/at-10.spec.ts | planned |
+| AT-10 | 低出勤提醒不除名；普通/集训队退出分别处理 | FR-05 | WP-P0-10 | e2e/at-10.spec.ts（服务端：`ExitFlowTest`、`RegistrationTest`） | in_progress |
 | AT-11 | 普通会员/队长/离任部长越权读取与下载被拒 | NFR-02/03 | WP-P0-26 | e2e/at-11.spec.ts（B0 服务端负向：AuthorizationTest / FileAccessTest） | in_progress |
 | AT-12 | 考勤修订/成绩导入/导出/恢复备份；日志回执完整 | FR-12/30 | WP-P0-25 | e2e/at-12.spec.ts（B0 审计部分：AuditAndRuleTest） | in_progress |
 | AT-13 | 三级目录+前置无环+导入重复/错误；每题一主算法 | FR-37..42 | WP-P0-11 | e2e/at-13.spec.ts | planned |
@@ -116,7 +116,7 @@
 | NFR-01 | 桌面管理 + 手机报名/签到/任务/反馈 | Web 响应式 + P0-16 | planned |
 | NFR-02 | 服务端按角色与数据范围校验；停用即时失效 | WP-P0-03/04/26；`JwtAuthenticationFilter`、`ScopeGuard`、`AuthService` | in_progress（B0 服务端已交付，E2E 待 WP-P0-26） |
 | NFR-03 | 敏感信息按需展示、限制批量导出、密码不明文 | WP-P0-03/25；Argon2id、refresh 仅 HttpOnly、`FileService` 可见性 | in_progress（密码/令牌已满足，导出限制待 P0-25） |
-| NFR-04 | 审批/状态/权限/成绩/考勤/导出可审计 | WP-P0-05；`AuditService` + PG V2 触发器 | in_progress（B0 规则/账号/附件已覆盖，业务域随 WP 接入） |
+| NFR-04 | 审批/状态/权限/成绩/考勤/导出可审计 | WP-P0-05；`AuditService` + PG V2 触发器 | in_progress（B1 申请/审核/生效/任职/档案/注册已接入审计与通知） |
 | NFR-05 | 一致性校验、导入预检、错误行与回执 | WP-P0-13 | planned |
 | NFR-06 | 定期备份并验证恢复 | WP-P0-02/25 | planned |
 | NFR-07 | 规则/学期/日历/赛事/难度/审批人可配置 | WP-P0-02/24 | planned |
@@ -150,3 +150,20 @@
 | DATA-05 / I-21 审计只增不改 | PG `V2__audit_append_only.sql` 触发器；无写改删端点 | `AuditAndRuleTest`（无 DELETE 路由）；触发器待 PG 实库验证 | implemented |
 | I-23 / DENY-04 未确认阈值只提示 | 5 个 `MANUAL` 空值规则键；`RuleService` 拒绝 MANUAL 带值 | `AuditAndRuleTest`、`SeedIdempotencyTest` | implemented |
 | DENY-11 / DENY-12 密钥与日志 | 密钥仅环境变量（prod 强制）、错误响应不含堆栈/凭据 | `GlobalExceptionHandler`；`application-prod.yml` | implemented |
+
+
+## 7. B1 条款对照（2026-11-26）
+
+| 条款 / 需求 | 落地位置 | 验证 | 状态 |
+|---|---|---|---|
+| DOM-07 申请 7 态与审批轨迹 | `application/ApplicationStatus.java`、`ApplicationService`、`ApplicationVersion`（快照）、`ApplicationReview`（只追加） | `ApplicationFlowTest`（退回→v2→重提→通过） | implemented |
+| D-05 审批通过 ≠ 生效 | `ApplicationService.effect`（APPROVED 后由 member:write 确认，写入 effectedAt 才建会员） | `ApplicationFlowTest`（审批后 membership 为空，生效后才 PROBATION） | implemented |
+| I-07 申请人不得自批 | `ApprovalService.decide`（actor==申请人 → 403 SELF_APPROVAL_DENIED）+ `ScopeGuard.assertNotSelf` | `ApplicationFlowTest.applicantCannotApproveOwnApplication` | implemented |
+| DOM-12 / I-23 未确认阈值只提示 | `validateExitNotice` 用 `rule_config.exit.notice_workdays`；考核/缺勤阈值仍 MANUAL | `ExitFlowTest`、`RegistrationTest` | implemented |
+| DOM-15 历史不可改写 | `identity_history`、`approval_node`、`application_review` 只追加；无删除入口 | 代码评审 + 各测试断言状态不回退 | implemented |
+| FR-01 组织任期与到期失权 | `org/OrgService.assign/end`（结束任职回收角色并递增 token_version） | `OrgAssignmentTest`（结束任职后旧令牌 401） | implemented |
+| FR-02 入会申请双路径 | `channel`（COMPETITION/GENERAL）持久化；审批人按 `application:review` 通知 | `ApplicationFlowTest`（channel=COMPETITION） | implemented（路径分流规则待 Q 确认） |
+| FR-03 一人一档与身份变更留史 | `MemberService.profile`（含终态成员回看最近身份）、`IdentityHistory` | `ApplicationFlowTest`、`ExitFlowTest` | implemented |
+| FR-04 学期注册与考核三态 | `RegistrationService`（幂等注册、三态校验、同步 membership.assessment） | `RegistrationTest` | implemented |
+| FR-05 退出与告知期 | `ApplicationService.effect`（EXIT→EXITED+exitedAt+exitReason）、`validateExitNotice` | `ExitFlowTest` 3 例 | implemented |
+| FR-29 审批与通知 | `ApprovalService`（N 级、待办、退回）、`NotificationService`（站内信） | `ApplicationFlowTest`（todo/通知/退回重提） | implemented |

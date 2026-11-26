@@ -227,6 +227,28 @@ public class AccountService {
                 Map.of("roleId", assignment.getRoleId().toString(), "scope", assignment.getScopeType()), null, reason);
     }
 
+    /**
+     * 供任职结束等受信服务调用：不做权限判定（由调用方校验），但仍立即失效并审计。
+     */
+    @Transactional
+    public void revokeInternal(UUID assignmentId, String reason) {
+        RoleAssignment assignment = assignmentRepository.findById(assignmentId).orElse(null);
+        if (assignment == null || assignment.getRevokedAt() != null) {
+            return;
+        }
+        assignment.setRevokedAt(Instant.now());
+        assignment.setRevokedBy(currentUser.principal().personId());
+        assignment.setReason(reason);
+        assignmentRepository.save(assignment);
+        accountRepository.findByPersonId(assignment.getPersonId()).ifPresent(account -> {
+            account.setTokenVersion(account.getTokenVersion() + 1);
+            accountRepository.save(account);
+        });
+        auditService.record("role.revoke", "role_assignment", assignmentId,
+                Map.of("roleId", assignment.getRoleId().toString(), "scope", assignment.getScopeType()),
+                Map.of("revoked", true), reason);
+    }
+
     private UserAccount requireAccount(UUID accountId) {
         return accountRepository.findById(accountId)
                 .orElseThrow(() -> ApiException.notFound("账号不存在"));

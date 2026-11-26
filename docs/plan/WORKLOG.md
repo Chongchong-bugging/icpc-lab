@@ -78,3 +78,42 @@
 - 前端登录页与路由守卫未做（B0 只交付服务端契约）；`apps/web` 仍为健康检查页。
 - Testcontainers/PostgreSQL 实库验证、`audit_log` jsonb 迁移、TEAM 范围判定（B1 队伍模型落地后补）待补。
 - 下一步 B1：FR-01 组织任期、FR-02 入会申请、FR-03 会员档案、FR-04 注册考核、FR-05 退出、FR-29 审批通知。
+## 2026-11-26（B1：组织/申请/会员/注册/退出/审批通知）
+
+**完成**
+
+- WP-P0-06：`org/` 部门/岗位/届次/学期/任职（`position_assignment`，active_key 唯一防重复任职）；`OrgService.assign/end` 结束任职即回收角色并递增 `token_version`；页面 `OrgService` 提供只读列表。
+- WP-P0-08：`application/` 申请 7 态（DRAFT/SUBMITTED/PROCESSING/RETURNED/APPROVED/REJECTED/WITHDRAWN）+ 版本快照（`application_version`）+ 审核轨迹（`application_review` 只追加）+ `channel`（COMPETITION/GENERAL）；退回可改稿重提（生成新版本）；撤回释放 `open_type`；审批通过 ≠ 生效（`effective_at`/`effected_at` 分离）。
+- WP-P0-07：`member/` 会员档案与分类查询（关键词/身份/生命周期/部门）、身份变更留史（`identity_history`）、奖惩记录只追加。
+- WP-P0-09：`member/RegistrationService` 学期注册（同人同学期唯一、幂等）、考核三态（PENDING/QUALIFIED/OBSERVING）、观察名单不自动除名（MANUAL 阈值）。
+- WP-P0-10：退出/转会生效逻辑：JOIN→LAB_MEMBER/PROBATION；TRANSFER→TEAM_MEMBER；EXIT→EXITED+exitedAt+exitReason；集训队在 `submit` 校验 15 个工作日告知期（不足 409）。
+- WP-P0-24：`approval/` 审批实例与节点（多级、待办、撤回）、`notification/` 站内信（有人提交/审核结果/生效结果）；`/approvals/todo` 按业务权限过滤，禁自批。
+- 迁移：`db/migration/common/V3__b1_member.sql`（7 张新表 + 申请表补列 `channel/form/effective_at/effected_at`）。
+- 文档：PLAN v1.4、TRACEABILITY v1.2（§7 B1 条款对照）、B1-plan v1.0。
+
+**决策**
+
+- 退出告知期只提示、不自动除名：集训队在提交时按 `exit.notice_workdays` 阻断不足天数；普通会员不阻断；`effective_at` 到点后仍需人工 `effect`（D-05 审批≠生效）。
+- 审批通过时清空 `open_type`、写入 `effective_at`；`effected_at` 为实际生效时间，两者分离以支撑"已批准未生效"。
+- 申请详情与生效操作不共用 `application:review`：生效仅需 `member:write`，避免 SYSADMIN 因不授予业务审批权限而无法完成组织确认（同时避免 `detail()` 的 403 回滚整个事务）。
+- 考核结论以 `semester_registration.assessment` 为准并同步 `membership.assessment`，避免两处事实源分叉（ADR-0002）。
+- 已退出成员回看档案走"最近一条 membership"（DOM-15 历史可查），不依赖 active_key。
+
+**验证**
+
+- `mvn -f apps/api/pom.xml verify` → `Tests run: 34, Failures: 0, Errors: 0`，BUILD SUCCESS。新增 10 例：
+  - `ApplicationFlowTest` 2：JOIN 全流程（退回→v2→重提→通过→生效）、自批 403 且状态不变。
+  - `ExitFlowTest` 4：退出全流程（15 个工作日告知期→到期生效→EXITED）、集训队不足 15 日 409、普通会员退出不受告知期限制、非会员 409。
+  - `RegistrationTest` 2：注册幂等 + 考核三态同步 + 非法值 400、非会员 409。
+  - `OrgAssignmentTest` 2：任职授予角色/重复 409/结束任职旧令牌 401、APPLICANT 403。
+- 治理：`node scripts/check-permissions.mjs` → 64 个权限码三方一致。
+- Flyway：V1+V2+V3 应用成功；种子仍 415 条。
+
+**遗留 / 下一步**
+
+- 待人工 H2.1 批评审确认 B1 gate：AT-01（申请双路径/学号不重复）、AT-02（任职与任期失效）、AT-10（低出勤不除名 + 退出分流）、退回可重提。服务端已覆盖，浏览器 E2E 待 B2。
+- 前端登录页与申请/审批页面未做；`apps/web` 仍是健康检查页。
+- 待确认（B1-plan §6）：观察会员口径、考核三态枚举是否最终、普通退出是否需审议会、通知渠道是否仅站内信。
+- TEAM 数据范围仍未实现（队伍模型随 B2）；`position_assignment` 的权限到期自动失效目前靠"结束任职"显式操作。
+
+
